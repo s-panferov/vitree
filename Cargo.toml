@@ -3,6 +3,13 @@ name = "vitree"
 version = "0.1.0"
 edition = "2021"
 
+authors = ["Stanislav Panferov <stanislav@panferov.dev>"]
+description = "Virtualized tree UI component written in Rust"
+homepage = "https://github.com/s-panferov/vitree"
+keywords = ["web", "webasm", "javascript"]
+categories = ["gui", "wasm", "web-programming"]
+license = "MIT"
+
 [dependencies]
 downcast-rs= "1"
 indexmap= "1"
