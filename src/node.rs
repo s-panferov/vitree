@@ -8,7 +8,7 @@ use super::item::TreeItem;
 use super::iter::{TreeCursor, TreeNodeIterator};
 use super::provider::{TreeExpandResult, TreeProvider};
 use super::root::RootData;
-use super::{HASH_TYPE, KEY_TYPE};
+use super::{HashType, KeyType};
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum TreeKind {
@@ -18,21 +18,22 @@ pub enum TreeKind {
 }
 
 pub trait TreeData: downcast_rs::Downcast + std::fmt::Debug {
-    fn key(&self) -> KEY_TYPE;
+    fn key(&self) -> KeyType;
     fn icon(&self) -> Option<&str>;
     fn title(&self) -> &str;
-    fn hash(&self) -> HASH_TYPE;
-    fn expandable(&self) -> bool;
+    fn hash(&self) -> HashType;
+    fn flags(&self) -> TreeFlags;
 }
 
 downcast_rs::impl_downcast!(TreeData);
 
 bitflags::bitflags! {
     pub struct TreeFlags: u32 {
-            const ROOT = 0b00000001;
-            const EXPANDED = 0b00000010;
-            const LOADING = 0b00000100;
-            const READY = 0b00001000;
+        const ROOT = 0b00000001;
+        const EXPANDED = 0b00000010;
+        const LOADING = 0b00000100;
+        const READY = 0b00001000;
+        const EXPANDABLE = 0b00010000;
     }
 }
 
@@ -42,7 +43,7 @@ pub struct TreeNodeInner {
     depth: u16,
     flags: TreeFlags,
     children_len: usize,
-    pub(crate) children: IndexMap<KEY_TYPE, Rc<TreeNode>>,
+    pub(crate) children: IndexMap<KeyType, Rc<TreeNode>>,
 }
 
 pub struct TreeNode {
@@ -60,8 +61,8 @@ impl TreeNode {
     pub fn new(parent: &Rc<TreeNode>, data: Box<dyn TreeData>) -> Rc<Self> {
         Rc::new(TreeNode {
             inner: RefCell::new(TreeNodeInner {
+                flags: data.flags(),
                 data,
-                flags: TreeFlags::empty(),
                 depth: parent.depth() + 1,
                 children: Default::default(),
                 children_len: 0,
@@ -77,8 +78,8 @@ impl TreeNode {
     pub fn root_with_data(data: Box<dyn TreeData>) -> Rc<Self> {
         Rc::new_cyclic(|this| TreeNode {
             inner: RefCell::new(TreeNodeInner {
+                flags: data.flags(),
                 data,
-                flags: TreeFlags::ROOT,
                 children: Default::default(),
                 depth: 0,
                 children_len: 0,
@@ -103,7 +104,7 @@ impl TreeNode {
         self.inner.borrow_mut().flags = flags;
     }
 
-    pub fn get(&self, key: KEY_TYPE) -> Option<Rc<TreeNode>> {
+    pub fn get(&self, key: KeyType) -> Option<Rc<TreeNode>> {
         self.inner_mut().children.get(&key).cloned()
     }
 
@@ -170,7 +171,7 @@ impl TreeNode {
         self.flags().contains(TreeFlags::ROOT)
     }
 
-    pub fn flatten(self: &Rc<TreeNode>) -> IndexMap<KEY_TYPE, Rc<TreeNode>> {
+    pub fn flatten(self: &Rc<TreeNode>) -> IndexMap<KeyType, Rc<TreeNode>> {
         let mut list = IndexMap::with_capacity(self.children_len() + 1);
         self.flatten_internal(&mut list);
         list
@@ -178,7 +179,7 @@ impl TreeNode {
 
     // FIXME: we can make this cheaper for CPU if we can cache
     //        unchanged lists
-    fn flatten_internal(self: &Rc<TreeNode>, list: &mut IndexMap<KEY_TYPE, Rc<TreeNode>>) {
+    fn flatten_internal(self: &Rc<TreeNode>, list: &mut IndexMap<KeyType, Rc<TreeNode>>) {
         if !self.is_root() {
             list.insert(self.key(), self.clone());
         }
@@ -262,7 +263,7 @@ impl TreeProvider for TreeNode {
 }
 
 impl TreeItem for TreeNode {
-    fn key(&self) -> KEY_TYPE {
+    fn key(&self) -> KeyType {
         self.inner().data.key()
     }
 
@@ -271,7 +272,7 @@ impl TreeItem for TreeNode {
     }
 
     fn expandable(&self) -> bool {
-        self.inner().data.expandable()
+        self.inner().data.flags().contains(TreeFlags::EXPANDABLE)
     }
 
     fn title(&self) -> Ref<str> {
@@ -282,7 +283,7 @@ impl TreeItem for TreeNode {
         self.inner().depth
     }
 
-    fn hash(&self) -> HASH_TYPE {
+    fn hash(&self) -> HashType {
         self.inner().data.hash()
     }
 

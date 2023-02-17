@@ -1,18 +1,20 @@
 use std::borrow::Cow;
 
+use crate::node::TreeFlags;
+
 use super::node::{TreeData, TreeKind};
-use super::{HASH_TYPE, KEY_TYPE};
+use super::{HashType, KeyType};
 
 #[derive(Debug)]
 pub struct PlainTreeData {
-    pub key: KEY_TYPE,
+    pub key: KeyType,
     pub icon: Option<Cow<'static, str>>,
     pub title: String,
-    pub expandable: bool,
+    pub flags: TreeFlags,
 }
 
 impl TreeData for PlainTreeData {
-    fn key(&self) -> KEY_TYPE {
+    fn key(&self) -> KeyType {
         self.key
     }
 
@@ -24,11 +26,11 @@ impl TreeData for PlainTreeData {
         &self.title
     }
 
-    fn expandable(&self) -> bool {
-        self.expandable
+    fn flags(&self) -> TreeFlags {
+        self.flags
     }
 
-    fn hash(&self) -> HASH_TYPE {
+    fn hash(&self) -> HashType {
         fxhash::hash64(&(&self.key, &self.title))
     }
 }
@@ -48,7 +50,7 @@ mod tests {
                         key: 1,
                         icon: None,
                         title: "1".into(),
-                        expandable: true,
+                        flags: TreeFlags::EXPANDABLE,
                     }),
                 )
                 .build(|parent| {
@@ -59,7 +61,7 @@ mod tests {
                                 key: 11,
                                 icon: None,
                                 title: "1.1".into(),
-                                expandable: false,
+                                flags: TreeFlags::empty(),
                             }),
                         ),
                         TreeNode::new(
@@ -68,7 +70,7 @@ mod tests {
                                 key: 12,
                                 icon: None,
                                 title: "1.2".into(),
-                                expandable: false,
+                                flags: TreeFlags::empty(),
                             }),
                         ),
                     ]
@@ -79,7 +81,7 @@ mod tests {
                         key: 2,
                         icon: None,
                         title: "2".into(),
-                        expandable: false,
+                        flags: TreeFlags::empty(),
                     }),
                 ),
             ]

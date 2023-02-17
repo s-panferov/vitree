@@ -1,12 +1,14 @@
-use super::node::{TreeData, TreeKind};
-use super::KEY_TYPE;
+use crate::node::TreeFlags;
+
+use super::node::TreeData;
+use super::KeyType;
 
 #[derive(Debug)]
 pub struct RootData;
 
 impl TreeData for RootData {
-    fn key(&self) -> KEY_TYPE {
-        0
+    fn key(&self) -> KeyType {
+        KeyType::MAX
     }
 
     fn icon(&self) -> Option<&str> {
@@ -18,10 +20,10 @@ impl TreeData for RootData {
     }
 
     fn hash(&self) -> u64 {
-        0
+        u64::MAX
     }
 
-    fn expandable(&self) -> bool {
-        true
+    fn flags(&self) -> TreeFlags {
+        TreeFlags::EXPANDABLE | TreeFlags::ROOT
     }
 }

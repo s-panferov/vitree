@@ -10,5 +10,6 @@ pub mod provider;
 pub mod root;
 pub mod view;
 
-pub type KEY_TYPE = usize;
-pub type HASH_TYPE = u64;
+pub type KeyType = usize;
+pub type HashType = u64;
+pub const ROOT_KEY: KeyType = KeyType::MAX;

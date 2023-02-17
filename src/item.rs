@@ -1,16 +1,16 @@
 use std::cell::Ref;
 
-use super::{HASH_TYPE, KEY_TYPE};
+use super::{HashType, KeyType};
 
 pub trait TreeItem {
-    fn key(&self) -> KEY_TYPE;
+    fn key(&self) -> KeyType;
     fn icon(&self) -> Ref<str>;
     fn title(&self) -> Ref<str>;
     fn depth(&self) -> u16;
     fn expandable(&self) -> bool {
         false
     }
-    fn hash(&self) -> HASH_TYPE;
+    fn hash(&self) -> HashType;
     fn expanded(&self) -> bool {
         false
     }

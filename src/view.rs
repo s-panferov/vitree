@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
@@ -10,7 +9,7 @@ use web_sys::{Element, HtmlElement, Node, Text};
 
 use super::dynamic::TreeSubscriber;
 use super::item::TreeItem;
-use super::KEY_TYPE;
+use super::KeyType;
 
 pub trait TreeController {
     fn item(&self, index: usize) -> Rc<dyn TreeItem>;
@@ -21,7 +20,7 @@ pub trait TreeController {
 
 pub struct TreeState {
     count: usize,
-    rendered: HashMap<KEY_TYPE, RenderedItem>,
+    rendered: HashMap<KeyType, RenderedItem>,
     pool: Vec<RenderedItem>,
     offset: usize,
     size: (usize, usize),
@@ -141,6 +140,8 @@ impl TreeView {
             let key = key.parse::<usize>().unwrap();
             tracing::info!("Handle click event for key {}", key);
 
+            ev.prevent_default();
+            ev.stop_propagation();
             self.ctrl.handle_click(key);
         }
     }
@@ -167,6 +168,15 @@ impl TreeView {
     }
 
     pub fn update(&self) {
+        const LABEL: &'static str = "Tree::update";
+        web_sys::console::time_with_label(LABEL);
+
+        if let Ok(value) = Reflect::get(&web_sys::window().unwrap(), &"__debug".into()) {
+            if value.is_truthy() {
+                panic!("__debug")
+            }
+        }
+
         let mut state = self.state.borrow_mut();
         // for splitting borrows
         let state = &mut *state;
@@ -197,7 +207,7 @@ impl TreeView {
         let right = state.count.min(first_visible + visible_count);
         let range = first_visible..right;
 
-        let mut visited = BTreeSet::<KEY_TYPE>::new();
+        let mut visited = BTreeSet::<KeyType>::new();
 
         for (i, index) in range.enumerate() {
             let item = self.ctrl.item(index);
@@ -228,6 +238,8 @@ impl TreeView {
             item.container.remove();
             state.pool.push(item)
         }
+
+        web_sys::console::time_end_with_label(LABEL);
     }
 }
 

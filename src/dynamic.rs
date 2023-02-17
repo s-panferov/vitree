@@ -9,7 +9,7 @@ use super::item::TreeItem;
 use super::node::{TreeFlags, TreeNode};
 use super::provider::{TreeExpandResult, TreeProvider};
 use super::view::TreeController;
-use super::KEY_TYPE;
+use super::KeyType;
 
 pub trait TreeSubscriber {
     // Update the whole tree
@@ -67,7 +67,7 @@ impl DynamicTree {
         self.for_each_subscriber(|c| c.update_all())
     }
 
-    fn notify_update_item(&self, key: KEY_TYPE) {
+    fn notify_update_item(&self, key: KeyType) {
         self.for_each_subscriber(|c| c.update_item(key))
     }
 
@@ -81,9 +81,13 @@ impl DynamicTree {
         }
     }
 
-    pub fn expand(&self, key: KEY_TYPE) {
+    pub fn expand(&self, key: KeyType) {
         let item = self.get_item(key);
         let mut flags = item.flags();
+
+        if !flags.contains(TreeFlags::EXPANDABLE) {
+            return;
+        }
 
         if flags.contains(TreeFlags::EXPANDED) {
             // Collapse
@@ -151,7 +155,7 @@ impl TreeController for DynamicTree {
         self.flat.borrow().get_index(index).unwrap().1.clone()
     }
 
-    fn handle_click(&self, key: KEY_TYPE) {
+    fn handle_click(&self, key: KeyType) {
         self.expand(key);
 
         let item = self.get_item(key);
