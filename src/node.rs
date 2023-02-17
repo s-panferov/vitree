@@ -19,6 +19,7 @@ pub enum TreeKind {
 
 pub trait TreeData: downcast_rs::Downcast + std::fmt::Debug {
     fn key(&self) -> KEY_TYPE;
+    fn icon(&self) -> Option<&str>;
     fn title(&self) -> &str;
     fn hash(&self) -> HASH_TYPE;
     fn expandable(&self) -> bool;
@@ -263,6 +264,10 @@ impl TreeProvider for TreeNode {
 impl TreeItem for TreeNode {
     fn key(&self) -> KEY_TYPE {
         self.inner().data.key()
+    }
+
+    fn icon(&self) -> Ref<str> {
+        Ref::map(self.inner(), |v| v.data.icon().unwrap_or(""))
     }
 
     fn expandable(&self) -> bool {

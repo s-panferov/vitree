@@ -1,11 +1,14 @@
+use std::borrow::Cow;
+
 use super::node::{TreeData, TreeKind};
 use super::{HASH_TYPE, KEY_TYPE};
 
 #[derive(Debug)]
 pub struct PlainTreeData {
     pub key: KEY_TYPE,
+    pub icon: Option<Cow<'static, str>>,
     pub title: String,
-    pub kind: TreeKind,
+    pub expandable: bool,
 }
 
 impl TreeData for PlainTreeData {
@@ -13,12 +16,16 @@ impl TreeData for PlainTreeData {
         self.key
     }
 
+    fn icon(&self) -> Option<&str> {
+        self.icon.as_ref().map(|s| s.as_ref())
+    }
+
     fn title(&self) -> &str {
         &self.title
     }
 
     fn expandable(&self) -> bool {
-        self.kind == TreeKind::Folder
+        self.expandable
     }
 
     fn hash(&self) -> HASH_TYPE {
@@ -39,8 +46,9 @@ mod tests {
                     parent,
                     Box::new(PlainTreeData {
                         key: 1,
+                        icon: None,
                         title: "1".into(),
-                        kind: TreeKind::Folder,
+                        expandable: true,
                     }),
                 )
                 .build(|parent| {
@@ -49,16 +57,18 @@ mod tests {
                             parent,
                             Box::new(PlainTreeData {
                                 key: 11,
+                                icon: None,
                                 title: "1.1".into(),
-                                kind: TreeKind::File,
+                                expandable: false,
                             }),
                         ),
                         TreeNode::new(
                             parent,
                             Box::new(PlainTreeData {
                                 key: 12,
+                                icon: None,
                                 title: "1.2".into(),
-                                kind: TreeKind::File,
+                                expandable: false,
                             }),
                         ),
                     ]
@@ -67,8 +77,9 @@ mod tests {
                     parent,
                     Box::new(PlainTreeData {
                         key: 2,
+                        icon: None,
                         title: "2".into(),
-                        kind: TreeKind::File,
+                        expandable: false,
                     }),
                 ),
             ]

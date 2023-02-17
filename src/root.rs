@@ -9,6 +9,10 @@ impl TreeData for RootData {
         0
     }
 
+    fn icon(&self) -> Option<&str> {
+        None
+    }
+
     fn title(&self) -> &str {
         "ROOT"
     }
