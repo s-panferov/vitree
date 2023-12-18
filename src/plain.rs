@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use crate::node::TreeFlags;
 
-use super::node::{TreeData, TreeKind};
+use super::node::TreeData;
 use super::{HashType, KeyType};
 
 #[derive(Debug)]

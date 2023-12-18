@@ -52,15 +52,22 @@ impl DynamicTree {
         self.root.clone()
     }
 
+    pub fn flatten(&self) {
+        self.flat.replace(self.root.flatten());
+    }
+
     fn for_each_subscriber(&self, func: impl Fn(&dyn TreeSubscriber)) {
-        self.subscribers.borrow_mut().drain_filter(|c| {
-            if let Some(c) = c.upgrade() {
-                func(&*c);
-                false
-            } else {
-                true
-            }
-        });
+        self.subscribers
+            .borrow_mut()
+            .extract_if(|c| {
+                if let Some(c) = c.upgrade() {
+                    func(&*c);
+                    false
+                } else {
+                    true
+                }
+            })
+            .for_each(|_| {});
     }
 
     fn notify_update_all(&self) {
@@ -110,10 +117,16 @@ impl DynamicTree {
 
         match self.provider.expand(&item) {
             TreeExpandResult::Ready => {
+                let mut flags = item.flags();
+
+                flags.insert(TreeFlags::EXPANDED);
+                flags.insert(TreeFlags::READY);
+                item.set_flags(flags);
+
                 self.flat.replace(self.root.flatten());
                 self.notify_update_all();
             }
-            TreeExpandResult::Loading(job) => {
+            TreeExpandResult::Async(job) => {
                 let mut flags = item.flags();
 
                 flags.toggle(TreeFlags::LOADING);

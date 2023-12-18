@@ -1,5 +1,5 @@
-#![feature(hash_drain_filter)]
-#![feature(drain_filter)]
+#![feature(hash_extract_if)]
+#![feature(extract_if)]
 
 pub mod dynamic;
 pub mod item;

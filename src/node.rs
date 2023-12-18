@@ -28,6 +28,7 @@ pub trait TreeData: downcast_rs::Downcast + std::fmt::Debug {
 downcast_rs::impl_downcast!(TreeData);
 
 bitflags::bitflags! {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct TreeFlags: u32 {
         const ROOT = 0b00000001;
         const EXPANDED = 0b00000010;
@@ -73,6 +74,16 @@ impl TreeNode {
 
     pub fn root() -> Rc<Self> {
         Self::root_with_data(Box::new(RootData))
+    }
+
+    pub fn clear(&self) {
+        let mut inner = self.inner.borrow_mut();
+        let mut flags = inner.flags;
+        flags.remove(TreeFlags::EXPANDED);
+        flags.remove(TreeFlags::READY);
+        inner.flags = flags;
+        inner.children.clear();
+        inner.children_len = 0;
     }
 
     pub fn root_with_data(data: Box<dyn TreeData>) -> Rc<Self> {

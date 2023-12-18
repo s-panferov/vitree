@@ -233,7 +233,7 @@ impl TreeView {
             }
         }
 
-        for (_key, item) in rendered.drain_filter(|key, _| !visited.contains(&key)) {
+        for (_key, item) in rendered.extract_if(|key, _| !visited.contains(&key)) {
             // pool
             item.container.remove();
             state.pool.push(item)
